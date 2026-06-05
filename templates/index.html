@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Academic Assistant Chatbot</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="avatar-wrap">
+        <div class="avatar" aria-hidden="true">🎓</div>
+        <div class="status-dot" id="statusDot"></div>
+      </div>
+      <div class="header-text">
+        <h1>Student Academic Assistant</h1>
+        <span class="subtitle" id="headerSubtitle">Online</span>
+      </div>
+      <button class="reset-btn" id="resetBtn" title="Start new session" aria-label="Reset session">
+        🔄 New Session
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Chat window ────────────────────────────────────────────────── -->
+  <main class="chat-container" role="main">
+    <div class="chat-window" id="chatWindow" aria-live="polite" aria-label="Chat messages">
+      <!-- Messages injected by JS -->
+    </div>
+  </main>
+
+  <!-- ── Input bar ──────────────────────────────────────────────────── -->
+  <footer class="input-bar">
+    <div class="input-inner">
+      <input
+        type="text"
+        id="userInput"
+        placeholder="Type your message…"
+        autocomplete="off"
+        aria-label="Message input"
+        maxlength="200"
+      />
+      <button id="sendBtn" aria-label="Send message">
+        <span>Send</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+    <p class="input-hint">
+      Tip: type <kbd>hello</kbd> to start · <kbd>register</kbd> to begin CAT · <kbd>exit</kbd> to end
+    </p>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
