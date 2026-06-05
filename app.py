@@ -114,13 +114,25 @@ def extract_answer_choice(text: str) -> str | None:
 
 # ── Session helpers ────────────────────────────────────────────────────────
 
+def validate_reg_number(reg: str) -> bool:
+    """
+    Accept any non-empty registration number (letters, digits, slashes, dashes, spaces).
+    E.g. C/4, SCT/101/2023, 20BCS001 — all valid.
+    Returns False only for blank or pure-whitespace input.
+    """
+    return bool(re.sub(r"[\s]", "", reg))
+
+
 def new_session(session_id: str):
     sessions[session_id] = {
-        "state": "greeting",      # greeting | awaiting_name | in_cat | finished
+        # States: greeting | pre_register | awaiting_name | awaiting_reg |
+        #         cat_countdown | in_cat | finished
+        "state": "greeting",
         "name": None,
-        "q_index": 0,             # current question (0-based)
+        "reg_number": None,
+        "q_index": 0,
         "score": 0,
-        "results": [],            # list of {question, user_answer, correct, correct_answer}
+        "results": [],
         "cat_started": False,
     }
 
@@ -185,7 +197,9 @@ def process_message(session_id: str, user_input: str) -> list[dict]:
         bot("📋 Review:", "bot")
         for line in build_review(session):
             bot(line, "review")
-        bot("Thank you for using the Student Academic Assistant Chatbot. Goodbye! 👋")
+        name = session.get("name", "Student")
+        reg  = session.get("reg_number", "—")
+        bot(f"Thank you, <b>{name}</b> ({reg}), for using the Student Academic Assistant Chatbot. Goodbye! 👋")
         session["state"] = "finished"
         return responses
 
@@ -203,7 +217,7 @@ def process_message(session_id: str, user_input: str) -> list[dict]:
             session["state"] = "pre_register"
         elif detect_register_intent(user_input):
             bot("Great! Let's get you registered.")
-            bot("Please enter your student name:")
+            bot("Please enter your <b>student name</b>:")
             session["state"] = "awaiting_name"
         else:
             bot("Hi there! 👋 I'm your Student Academic Assistant.")
@@ -225,8 +239,23 @@ def process_message(session_id: str, user_input: str) -> list[dict]:
             bot("That doesn't look like a valid name. Please enter your full name:")
         else:
             session["name"] = name
-            bot(f"✅ Registration completed successfully. Welcome, <b>{name}</b>!")
-            bot("Your CAT examination will start in 5 seconds…")
+            bot(f"Thank you, <b>{name}</b>!")
+            bot("Please enter your <b>registration number</b>:")
+            session["state"] = "awaiting_reg"
+
+    # ── AWAITING REGISTRATION NUMBER ──────────────────────────────────
+    elif state == "awaiting_reg":
+        reg = user_input.strip()
+        if not validate_reg_number(reg):
+            bot("That doesn't look like a valid registration number. Please try again:")
+        else:
+            session["reg_number"] = reg
+            name = session["name"]
+            # Verification confirmation (no database — accepts any valid input)
+            bot(f"✅ Confirmed. <b>{name}</b> with Registration Number <b>{reg}</b> "
+                f"is registered for this NLP unit.")
+            bot("Proceeding to CAT examination…")
+            bot("Your CAT will begin in 5 seconds.")
             bot("__COUNTDOWN__", "countdown")   # frontend handles countdown
             session["state"] = "cat_countdown"
 
@@ -276,7 +305,9 @@ def process_message(session_id: str, user_input: str) -> list[dict]:
             bot("📋 Here's your review:")
             for line in build_review(session):
                 bot(line, "review")
-            bot("Thank you for using the Student Academic Assistant Chatbot! 🎓")
+            name = session.get("name", "Student")
+            reg  = session.get("reg_number", "—")
+            bot(f"🎓 Thank you, <b>{name}</b> ({reg}), for using the Student Academic Assistant Chatbot!")
             session["state"] = "finished"
 
     # ── FINISHED ──────────────────────────────────────────────────────
